@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   collection, 
@@ -167,25 +166,25 @@ export function useNotes() {
   };
 
   // Search notes
-  const searchNotes = async (query: string) => {
-    if (!user || !query.trim()) {
+  const searchNotes = async (searchQuery: string) => {
+    if (!user || !searchQuery.trim()) {
       return notes;
     }
 
-    const notesQuery = collection(db, "notes");
-    const q = query(notesQuery, where("userId", "==", user.uid));
+    const notesRef = collection(db, "notes");
+    const q = query(notesRef, where("userId", "==", user.uid));
     const snapshot = await getDocs(q);
     
     const allNotes = snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data()
     })) as Note[];
     
     // Filter notes based on query
     return allNotes.filter(
       (note) =>
-        note.title.toLowerCase().includes(query.toLowerCase()) ||
-        note.content.toLowerCase().includes(query.toLowerCase())
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
