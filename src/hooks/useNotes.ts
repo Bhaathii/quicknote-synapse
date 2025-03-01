@@ -48,38 +48,68 @@ export function useNotes() {
     setError(null);
 
     try {
+      // Try a simpler query first to ensure we can get some data
+      // This is a fallback query without complex sorting that shouldn't require a composite index
       const notesQuery = query(
         collection(db, "notes"),
-        where("userId", "==", user.uid),
-        orderBy("isPinned", "desc"),
-        orderBy("updatedAt", "desc")
+        where("userId", "==", user.uid)
       );
 
       const unsubscribe = onSnapshot(
         notesQuery,
         (snapshot) => {
-          const notesList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Note[];
-          
-          setNotes(notesList);
-          setLoading(false);
-          setError(null);
-          
-          // Set active note to the first note if no active note
-          if (notesList.length > 0 && !activeNote) {
-            setActiveNote(notesList[0]);
+          try {
+            const notesList = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            })) as Note[];
+            
+            // Sort notes in memory as a fallback for the missing index
+            // First by isPinned (true first), then by updatedAt (newest first)
+            const sortedNotes = [...notesList].sort((a, b) => {
+              // First sort by isPinned
+              if (a.isPinned && !b.isPinned) return -1;
+              if (!a.isPinned && b.isPinned) return 1;
+              
+              // Then sort by updatedAt
+              const aTime = a.updatedAt?.toMillis() || 0;
+              const bTime = b.updatedAt?.toMillis() || 0;
+              return bTime - aTime; // Descending order (newest first)
+            });
+            
+            setNotes(sortedNotes);
+            setLoading(false);
+            setError(null);
+            
+            // Set active note to the first note if no active note
+            if (sortedNotes.length > 0 && !activeNote) {
+              setActiveNote(sortedNotes[0]);
+            }
+          } catch (err: any) {
+            console.error("Error processing notes data:", err);
+            setError("Error processing notes data: " + err.message);
+            setLoading(false);
           }
         },
-        (error) => {
-          console.error("Error fetching notes:", error);
-          setError("Failed to fetch notes: " + error.message);
+        (err) => {
+          console.error("Error fetching notes:", err);
+          
+          // Check if it's a missing index error
+          if (err.code === "failed-precondition" && err.message.includes("index")) {
+            setError(
+              "This query requires a Firestore index. Please create the index and refresh the page. " +
+              "See console for details."
+            );
+            console.warn("Missing Firestore index. Create it here:", err.message);
+          } else {
+            setError("Failed to fetch notes: " + err.message);
+          }
+          
           setLoading(false);
           
           toast({
             title: "Error",
-            description: "Failed to fetch notes: " + error.message,
+            description: "Failed to fetch notes. See details on screen.",
             variant: "destructive",
           });
         }
