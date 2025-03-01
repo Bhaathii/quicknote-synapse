@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   collection, 
@@ -30,6 +31,7 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -38,44 +40,63 @@ export function useNotes() {
     if (!user) {
       setNotes([]);
       setLoading(false);
+      setError(null);
       return;
     }
 
-    const notesQuery = query(
-      collection(db, "notes"),
-      where("userId", "==", user.uid),
-      orderBy("isPinned", "desc"),
-      orderBy("updatedAt", "desc")
-    );
+    setLoading(true);
+    setError(null);
 
-    const unsubscribe = onSnapshot(
-      notesQuery,
-      (snapshot) => {
-        const notesList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Note[];
-        
-        setNotes(notesList);
-        setLoading(false);
-        
-        // Set active note to the first note if no active note
-        if (notesList.length > 0 && !activeNote) {
-          setActiveNote(notesList[0]);
+    try {
+      const notesQuery = query(
+        collection(db, "notes"),
+        where("userId", "==", user.uid),
+        orderBy("isPinned", "desc"),
+        orderBy("updatedAt", "desc")
+      );
+
+      const unsubscribe = onSnapshot(
+        notesQuery,
+        (snapshot) => {
+          const notesList = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Note[];
+          
+          setNotes(notesList);
+          setLoading(false);
+          setError(null);
+          
+          // Set active note to the first note if no active note
+          if (notesList.length > 0 && !activeNote) {
+            setActiveNote(notesList[0]);
+          }
+        },
+        (error) => {
+          console.error("Error fetching notes:", error);
+          setError("Failed to fetch notes: " + error.message);
+          setLoading(false);
+          
+          toast({
+            title: "Error",
+            description: "Failed to fetch notes: " + error.message,
+            variant: "destructive",
+          });
         }
-      },
-      (error) => {
-        console.error("Error fetching notes:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch notes",
-          variant: "destructive",
-        });
-        setLoading(false);
-      }
-    );
+      );
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (error: any) {
+      console.error("Error setting up notes listener:", error);
+      setError("Error setting up notes listener: " + error.message);
+      setLoading(false);
+      
+      toast({
+        title: "Error",
+        description: "Failed to set up notes listener: " + error.message,
+        variant: "destructive",
+      });
+    }
   }, [user, activeNote, toast]);
 
   // Create a new note
@@ -104,11 +125,11 @@ export function useNotes() {
         title: "Note created",
         description: "New note has been created",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating note:", error);
       toast({
         title: "Error",
-        description: "Failed to create note",
+        description: "Failed to create note: " + error.message,
         variant: "destructive",
       });
     }
@@ -130,11 +151,11 @@ export function useNotes() {
           prev ? { ...prev, ...data, updatedAt: Timestamp.now() } : prev
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating note:", error);
       toast({
         title: "Error",
-        description: "Failed to update note",
+        description: "Failed to update note: " + error.message,
         variant: "destructive",
       });
     }
@@ -155,11 +176,11 @@ export function useNotes() {
         title: "Note deleted",
         description: "Note has been deleted",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting note:", error);
       toast({
         title: "Error",
-        description: "Failed to delete note",
+        description: "Failed to delete note: " + error.message,
         variant: "destructive",
       });
     }
@@ -171,21 +192,31 @@ export function useNotes() {
       return notes;
     }
 
-    const notesRef = collection(db, "notes");
-    const q = query(notesRef, where("userId", "==", user.uid));
-    const snapshot = await getDocs(q);
-    
-    const allNotes = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Note[];
-    
-    // Filter notes based on query
-    return allNotes.filter(
-      (note) =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    try {
+      const notesRef = collection(db, "notes");
+      const q = query(notesRef, where("userId", "==", user.uid));
+      const snapshot = await getDocs(q);
+      
+      const allNotes = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Note[];
+      
+      // Filter notes based on query
+      return allNotes.filter(
+        (note) =>
+          note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } catch (error: any) {
+      console.error("Error searching notes:", error);
+      toast({
+        title: "Error",
+        description: "Failed to search notes: " + error.message,
+        variant: "destructive",
+      });
+      return [];
+    }
   };
 
   return {
@@ -193,6 +224,7 @@ export function useNotes() {
     activeNote,
     setActiveNote,
     loading,
+    error,
     createNote,
     updateNote,
     deleteNote,

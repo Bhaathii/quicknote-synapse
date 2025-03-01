@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { AlertCircle } from "lucide-react";
 
 interface AuthFormData {
   email: string;
@@ -41,6 +42,7 @@ function AppContent() {
     activeNote,
     setActiveNote,
     loading: notesLoading,
+    error: notesError,
     createNote,
     updateNote,
     deleteNote,
@@ -185,6 +187,14 @@ function AppContent() {
   // Main app rendering (when authenticated)
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Display error state if notes failed to fetch */}
+      {notesError && (
+        <div className="fixed top-0 left-0 right-0 p-4 bg-destructive text-destructive-foreground z-50 flex items-center justify-center">
+          <AlertCircle className="mr-2 h-5 w-5" />
+          <span>Error: {notesError}. Please refresh the page.</span>
+        </div>
+      )}
+      
       <Sidebar
         notes={displayedNotes}
         activeNote={activeNote}
