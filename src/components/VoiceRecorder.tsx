@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void;
@@ -16,6 +17,11 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
+  const location = useLocation();
+  
+  // Check if user has premium from location state (after payment)
+  const hasPremiumFromPayment = location.state?.isPremium || false;
+  const userHasPremium = isPremium || hasPremiumFromPayment;
   
   // Clean up on unmount
   useEffect(() => {
@@ -30,7 +36,7 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
   }, [isRecording]);
   
   const startRecording = async () => {
-    if (!isPremium) {
+    if (!userHasPremium) {
       alert("Voice recording is a premium feature. Upgrade to unlock!");
       return;
     }
@@ -127,12 +133,12 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
         </Button>
       ) : (
         <Button
-          variant={isPremium ? "default" : "outline"}
+          variant={userHasPremium ? "default" : "outline"}
           size="icon"
           onClick={startRecording}
           className={cn(
             "rounded-full",
-            !isPremium && "opacity-50"
+            !userHasPremium && "opacity-50"
           )}
           aria-label="Start recording"
         >

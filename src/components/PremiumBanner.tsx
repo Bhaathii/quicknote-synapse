@@ -1,18 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export function PremiumBanner() {
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleUpgradeClick = () => {
-    toast({
-      title: "Premium Upgrade",
-      description: "This feature is coming soon! Premium subscription will be available in the next update.",
-      variant: "default",
-      duration: 5000,
-    });
+    navigate("/subscription");
   };
 
   return (
