@@ -4,6 +4,7 @@ import { SearchBar } from "./SearchBar";
 import { NoteItem } from "./NoteItem";
 import { ThemeToggle } from "./ThemeToggle";
 import { PremiumBanner } from "./PremiumBanner";
+import { SettingsDialog } from "./SettingsDialog";
 import { Note } from "@/hooks/useNotes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function Sidebar({
   onSearch,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { logout, user } = useAuth();
   const isMobile = useIsMobile();
   
@@ -54,6 +56,12 @@ export function Sidebar({
         collapsed ? "w-[60px]" : "w-[280px]"
       )}
     >
+      {/* Settings dialog */}
+      <SettingsDialog 
+        open={settingsOpen} 
+        onOpenChange={setSettingsOpen} 
+      />
+      
       <div className="flex items-center justify-between p-4">
         {!collapsed && (
           <h1 className="text-xl font-medium slide-in">QuickNote</h1>
@@ -120,6 +128,7 @@ export function Sidebar({
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => setSettingsOpen(true)}
               aria-label="Settings"
             >
               <Settings className="h-5 w-5" />
@@ -141,6 +150,7 @@ export function Sidebar({
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => setSettingsOpen(true)}
               aria-label="Settings"
             >
               <Settings className="h-5 w-5" />
