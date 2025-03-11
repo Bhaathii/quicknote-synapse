@@ -8,9 +8,11 @@ import { Note } from "@/hooks/useNotes";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Keyboard, Plus, Settings } from "lucide-react";
+import { Keyboard, LogOut, Plus, Settings, Sparkles } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   notes: Note[];
@@ -34,10 +36,24 @@ export function Sidebar({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   // Group notes by pinned status
   const pinnedNotes = notes.filter(note => note.isPinned);
   const unpinnedNotes = notes.filter(note => !note.isPinned);
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const handlePremiumClick = () => {
+    navigate("/subscription");
+  };
   
   return (
     <div className={cn(
@@ -98,26 +114,46 @@ export function Sidebar({
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setSettingsOpen(true)}
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShortcutsOpen(true)}
-            aria-label="Keyboard shortcuts"
-          >
-            <Keyboard className="h-5 w-5" />
-          </Button>
+      <div className="p-4 border-t">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full mb-2"
+          onClick={handlePremiumClick}
+        >
+          <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
+          Upgrade to Premium
+        </Button>
+        
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Settings"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShortcutsOpen(true)}
+              aria-label="Keyboard shortcuts"
+            >
+              <Keyboard className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleLogout}
+              aria-label="Log out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
       </div>
       
       <SettingsDialog 
