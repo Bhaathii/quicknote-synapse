@@ -99,8 +99,8 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
     "ctrl+shift+l": () => editor?.chain().focus().toggleOrderedList().run(),
     "ctrl+q": () => editor?.chain().focus().toggleBlockquote().run(),
     "ctrl+delete": () => note && handleDelete(),
-    "ctrl+s": (e) => {
-      // Manual save
+    "ctrl+s": () => {
+      // Manual save - fixed type error by removing the parameter
       if (note) {
         setShowSaveIndicator(true);
         onUpdate(note.id, { content: editor?.getHTML() || "", title })

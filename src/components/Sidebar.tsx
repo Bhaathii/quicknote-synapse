@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Keyboard, Plus, Settings } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 
 interface SidebarProps {
@@ -33,7 +33,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   
   // Group notes by pinned status
   const pinnedNotes = notes.filter(note => note.isPinned);
@@ -67,7 +67,7 @@ export function Sidebar({
                   note={note}
                   isActive={activeNote?.id === note.id}
                   onClick={() => onSelectNote(note)}
-                  onTogglePin={(id) => onPinNote(id, !note.isPinned)}
+                  onPin={() => onPinNote(note.id, !note.isPinned)}
                 />
               ))}
             </div>
@@ -86,7 +86,7 @@ export function Sidebar({
                   note={note}
                   isActive={activeNote?.id === note.id}
                   onClick={() => onSelectNote(note)}
-                  onTogglePin={(id) => onPinNote(id, !note.isPinned)}
+                  onPin={() => onPinNote(note.id, !note.isPinned)}
                 />
               ))
             ) : (
