@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   User, 
@@ -82,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         errorMessage = "Sign-in was cancelled. Please try again.";
       } else if (error.code === "auth/popup-blocked") {
         errorMessage = "Sign-in popup was blocked. Please allow popups for this site.";
+      } else if (error.code === "auth/unauthorized-domain") {
+        errorMessage = "This website domain is not authorized for Google authentication. For now, try using email/password sign-in instead.";
       }
       
       toast({

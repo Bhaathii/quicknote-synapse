@@ -21,4 +21,8 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Note: For Google authentication to work, you need to add your domain 
+// to the authorized domains list in Firebase Console:
+// Firebase Console > Authentication > Settings > Authorized domains
+
 export { app, analytics, auth, db };

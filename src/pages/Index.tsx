@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { AlertCircle, MessageSquare, Mail } from "lucide-react";
+import { AlertCircle, MessageSquare, Mail, AlertTriangle } from "lucide-react";
 
 interface AuthFormData {
   email: string;
@@ -36,6 +36,7 @@ function AppContent() {
     password: "",
     isLogin: true,
   });
+  const [googleAuthError, setGoogleAuthError] = useState(false);
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [searchInputRef, setSearchInputRef] = useState<HTMLInputElement | null>(null);
@@ -94,9 +95,13 @@ function AppContent() {
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     try {
+      setGoogleAuthError(false);
       await signInWithGoogle();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google authentication error:", error);
+      if (error.code === "auth/unauthorized-domain") {
+        setGoogleAuthError(true);
+      }
     }
   };
   
@@ -106,6 +111,7 @@ function AppContent() {
       ...prev,
       isLogin: !prev.isLogin,
     }));
+    setGoogleAuthError(false);
   };
 
   // Handle search
@@ -132,7 +138,7 @@ function AppContent() {
   };
   
   // Filter displayed notes based on search
-  const displayedNotes = filteredNotes.length > 0 ? filteredNotes : notes;
+  const displayedNotes = filteredNotes?.length > 0 ? filteredNotes : notes;
   
   // Auth form rendering
   if (loading) {
@@ -192,6 +198,13 @@ function AppContent() {
             <Button type="submit" className="w-full">
               {authForm.isLogin ? "Sign in" : "Sign up"}
             </Button>
+            
+            {googleAuthError && (
+              <div className="p-3 bg-destructive/15 border border-destructive rounded-md flex items-center text-sm text-destructive">
+                <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <p>Google sign-in not available on this domain. Please use email and password.</p>
+              </div>
+            )}
             
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
