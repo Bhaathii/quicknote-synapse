@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { NoteEditor } from "@/components/NoteEditor";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { useNotes } from "@/hooks/useNotes";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, MessageSquare } from "lucide-react";
 
 interface AuthFormData {
   email: string;
@@ -36,6 +36,7 @@ function AppContent() {
     isLogin: true,
   });
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   
   const {
     notes,
@@ -206,6 +207,16 @@ function AppContent() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-end p-2 border-b">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mr-2"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            <MessageSquare className="h-4 w-4 mr-1" />
+            Feedback
+          </Button>
+          
           <VoiceRecorder 
             onTranscription={handleTranscription} 
             isPremium={false} // Set to true for premium users
@@ -223,6 +234,11 @@ function AppContent() {
           />
         </div>
       </div>
+      
+      <FeedbackDialog 
+        open={feedbackOpen} 
+        onOpenChange={setFeedbackOpen} 
+      />
     </div>
   );
 }
