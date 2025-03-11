@@ -1,30 +1,25 @@
 
-import { useEffect, useState } from "react";
-import { SearchBar } from "./SearchBar";
-import { NoteItem } from "./NoteItem";
-import { ThemeToggle } from "./ThemeToggle";
-import { PremiumBanner } from "./PremiumBanner";
-import { SettingsDialog } from "./SettingsDialog";
+import React, { useState } from "react";
+import { NoteItem } from "@/components/NoteItem";
+import { SearchBar } from "@/components/SearchBar";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { Note } from "@/hooks/useNotes";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  LogOut, 
-  Settings 
-} from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Keyboard, Plus, Settings } from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
+import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 
 interface SidebarProps {
   notes: Note[];
   activeNote: Note | null;
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
-  onPinNote: (id: string, isPinned: boolean) => Promise<void>;
+  onPinNote: (id: string, isPinned: boolean) => void;
   onSearch: (query: string) => void;
+  searchInputRef?: (ref: HTMLInputElement | null) => void;
 }
 
 export function Sidebar({
@@ -34,139 +29,106 @@ export function Sidebar({
   onCreateNote,
   onPinNote,
   onSearch,
+  searchInputRef,
 }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { logout, user } = useAuth();
-  const isMobile = useIsMobile();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const isMobile = useMobile();
   
-  // Automatically collapse sidebar on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setCollapsed(true);
-    } else {
-      setCollapsed(false);
-    }
-  }, [isMobile]);
-
+  // Group notes by pinned status
+  const pinnedNotes = notes.filter(note => note.isPinned);
+  const unpinnedNotes = notes.filter(note => !note.isPinned);
+  
   return (
-    <div
-      className={cn(
-        "bg-sidebar text-sidebar-foreground h-full flex flex-col transition-all duration-300 ease-in-out border-r",
-        collapsed ? "w-[60px]" : "w-[280px]"
-      )}
-    >
-      {/* Settings dialog */}
+    <div className={cn(
+      "border-r bg-card w-72 flex flex-col",
+      isMobile && "absolute z-10 h-full"
+    )}>
+      <div className="p-4 border-b">
+        <h1 className="text-xl font-semibold mb-4">QuickNote</h1>
+        <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
+      </div>
+      
+      <div className="flex items-center justify-between p-4 border-b">
+        <Button onClick={onCreateNote} variant="default" size="sm" className="w-full" title="New Note (Ctrl+N)">
+          <Plus className="h-4 w-4 mr-1" />
+          New Note
+        </Button>
+      </div>
+      
+      <ScrollArea className="flex-1">
+        {pinnedNotes.length > 0 && (
+          <div className="p-2">
+            <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">PINNED</h2>
+            <div className="space-y-1">
+              {pinnedNotes.map(note => (
+                <NoteItem 
+                  key={note.id}
+                  note={note}
+                  isActive={activeNote?.id === note.id}
+                  onClick={() => onSelectNote(note)}
+                  onTogglePin={(id) => onPinNote(id, !note.isPinned)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="p-2">
+          {pinnedNotes.length > 0 && (
+            <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">NOTES</h2>
+          )}
+          <div className="space-y-1">
+            {unpinnedNotes.length > 0 ? (
+              unpinnedNotes.map(note => (
+                <NoteItem 
+                  key={note.id}
+                  note={note}
+                  isActive={activeNote?.id === note.id}
+                  onClick={() => onSelectNote(note)}
+                  onTogglePin={(id) => onPinNote(id, !note.isPinned)}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground p-2">
+                No notes found. Create a new one!
+              </p>
+            )}
+          </div>
+        </div>
+      </ScrollArea>
+      
+      <div className="p-4 border-t flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShortcutsOpen(true)}
+            aria-label="Keyboard shortcuts"
+          >
+            <Keyboard className="h-5 w-5" />
+          </Button>
+        </div>
+        <ThemeToggle />
+      </div>
+      
       <SettingsDialog 
         open={settingsOpen} 
         onOpenChange={setSettingsOpen} 
       />
       
-      <div className="flex items-center justify-between p-4">
-        {!collapsed && (
-          <h1 className="text-xl font-medium slide-in">QuickNote</h1>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className="ml-auto"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-5 w-5" />
-          ) : (
-            <ChevronLeft className="h-5 w-5" />
-          )}
-        </Button>
-      </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-2 flex gap-2">
-          {!collapsed && (
-            <div className="flex-1 slide-in">
-              <SearchBar onSearch={onSearch} />
-            </div>
-          )}
-          <Button
-            onClick={onCreateNote}
-            size="icon"
-            aria-label="Create new note"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {!collapsed && (
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {notes.map((note) => (
-              <NoteItem
-                key={note.id}
-                note={note}
-                isActive={activeNote?.id === note.id}
-                onClick={() => onSelectNote(note)}
-                onPin={() => onPinNote(note.id, !note.isPinned)}
-              />
-            ))}
-            {notes.length === 0 && (
-              <div className="text-center p-4 text-muted-foreground">
-                <p>No notes yet</p>
-                <p className="text-sm">Create your first note!</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!collapsed && <PremiumBanner />}
-      </div>
-
-      <div className="p-2 flex items-center justify-between border-t">
-        <ThemeToggle />
-        
-        {!collapsed && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Settings"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => logout()}
-              aria-label="Sign out"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </>
-        )}
-        
-        {collapsed && (
-          <div className="flex flex-col gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Settings"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => logout()}
-              aria-label="Sign out"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-      </div>
+      <KeyboardShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+      />
     </div>
   );
 }

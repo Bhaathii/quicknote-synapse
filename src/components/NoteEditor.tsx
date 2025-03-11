@@ -14,8 +14,11 @@ import {
   ListOrdered, 
   Heading, 
   Quote,
-  Trash2 
+  Trash2,
+  Keyboard 
 } from "lucide-react";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 
 interface NoteEditorProps {
   note: Note | null;
@@ -28,6 +31,7 @@ const AUTOSAVE_DELAY = 750; // milliseconds
 export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
   const [title, setTitle] = useState(note?.title || "");
   const [showSaveIndicator, setShowSaveIndicator] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   
   const editor = useEditor({
     extensions: [
@@ -86,6 +90,28 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
     }
   };
   
+  // Register editor shortcut handlers
+  useKeyboardShortcuts({
+    "ctrl+b": () => editor?.chain().focus().toggleBold().run(),
+    "ctrl+i": () => editor?.chain().focus().toggleItalic().run(),
+    "ctrl+h": () => editor?.chain().focus().toggleHeading({ level: 2 }).run(),
+    "ctrl+l": () => editor?.chain().focus().toggleBulletList().run(),
+    "ctrl+shift+l": () => editor?.chain().focus().toggleOrderedList().run(),
+    "ctrl+q": () => editor?.chain().focus().toggleBlockquote().run(),
+    "ctrl+delete": () => note && handleDelete(),
+    "ctrl+s": (e) => {
+      // Manual save
+      if (note) {
+        setShowSaveIndicator(true);
+        onUpdate(note.id, { content: editor?.getHTML() || "", title })
+          .then(() => {
+            setTimeout(() => setShowSaveIndicator(false), 800);
+          });
+      }
+    },
+    "?": () => setShowKeyboardShortcuts(true),
+  });
+  
   // Update editor when note changes
   useEffect(() => {
     if (editor && note) {
@@ -128,6 +154,15 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => setShowKeyboardShortcuts(true)}
+            aria-label="Keyboard shortcuts"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Keyboard className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleDelete}
             className="text-destructive hover:text-destructive/90"
             aria-label="Delete note"
@@ -146,6 +181,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleBold().run()}
               className={cn(editor.isActive('bold') ? 'bg-muted' : '')}
               aria-label="Bold"
+              title="Bold (Ctrl+B)"
             >
               <Bold className="h-4 w-4" />
             </Button>
@@ -155,6 +191,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleItalic().run()}
               className={cn(editor.isActive('italic') ? 'bg-muted' : '')}
               aria-label="Italic"
+              title="Italic (Ctrl+I)"
             >
               <Italic className="h-4 w-4" />
             </Button>
@@ -164,6 +201,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               className={cn(editor.isActive('heading', { level: 2 }) ? 'bg-muted' : '')}
               aria-label="Heading"
+              title="Heading (Ctrl+H)"
             >
               <Heading className="h-4 w-4" />
             </Button>
@@ -173,6 +211,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               className={cn(editor.isActive('bulletList') ? 'bg-muted' : '')}
               aria-label="Bullet list"
+              title="Bullet List (Ctrl+L)"
             >
               <List className="h-4 w-4" />
             </Button>
@@ -182,6 +221,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               className={cn(editor.isActive('orderedList') ? 'bg-muted' : '')}
               aria-label="Ordered list"
+              title="Ordered List (Ctrl+Shift+L)"
             >
               <ListOrdered className="h-4 w-4" />
             </Button>
@@ -191,6 +231,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
               className={cn(editor.isActive('blockquote') ? 'bg-muted' : '')}
               aria-label="Quote"
+              title="Quote (Ctrl+Q)"
             >
               <Quote className="h-4 w-4" />
             </Button>
@@ -204,6 +245,11 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
           </div>
         </div>
       )}
+      
+      <KeyboardShortcutsDialog
+        open={showKeyboardShortcuts}
+        onOpenChange={setShowKeyboardShortcuts}
+      />
     </div>
   );
 }

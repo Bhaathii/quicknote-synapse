@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { NoteEditor } from "@/components/NoteEditor";
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { AlertCircle, MessageSquare, Mail } from "lucide-react";
 
 interface AuthFormData {
@@ -38,6 +38,7 @@ function AppContent() {
   });
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [searchInputRef, setSearchInputRef] = useState<HTMLInputElement | null>(null);
   
   const {
     notes,
@@ -50,6 +51,20 @@ function AppContent() {
     deleteNote,
     searchNotes,
   } = useNotes();
+  
+  // Register app-level keyboard shortcuts
+  useKeyboardShortcuts({
+    "ctrl+n": () => {
+      if (user) {
+        createNote();
+      }
+    },
+    "ctrl+/": () => {
+      if (user && searchInputRef) {
+        searchInputRef.focus();
+      }
+    },
+  });
   
   // Handle form input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,6 +252,7 @@ function AppContent() {
         onCreateNote={createNote}
         onPinNote={(id, isPinned) => updateNote(id, { isPinned })}
         onSearch={handleSearch}
+        searchInputRef={setSearchInputRef}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
