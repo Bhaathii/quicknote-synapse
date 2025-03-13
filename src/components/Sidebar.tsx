@@ -114,45 +114,61 @@ export function Sidebar({
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full mb-2"
-          onClick={handlePremiumClick}
-        >
-          <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
-          Upgrade to Premium
-        </Button>
-        
-        <div className="flex justify-between items-center mt-2">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Settings"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setShortcutsOpen(true)}
-              aria-label="Keyboard shortcuts"
-            >
-              <Keyboard className="h-5 w-5" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              aria-label="Log out"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+      <div className="p-4 border-t space-y-4">
+        {/* Premium Upgrade Button - Styled like the image */}
+        <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5 text-amber-400" />
+            <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
           </div>
-          <ThemeToggle />
+          <p className="text-gray-400 text-sm mb-3">
+            Get voice notes, more storage and remove ads
+          </p>
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium"
+            onClick={handlePremiumClick}
+          >
+            Upgrade Now
+          </Button>
+        </div>
+        
+        {/* Settings, Shortcuts, Logout, Theme Toggle */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+            className="flex items-center justify-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            <span>Settings</span>
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShortcutsOpen(true)}
+            className="flex items-center justify-center gap-2"
+          >
+            <Keyboard className="h-4 w-4" />
+            <span>Shortcuts</span>
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </Button>
+          
+          <div className="flex items-center justify-center h-9 border rounded-md">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
       

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Check } from "lucide-react";
+import { Sparkles, Check, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Subscription = () => {
@@ -14,6 +14,17 @@ const Subscription = () => {
   return (
     <div className="container max-w-5xl px-4 py-8 mx-auto">
       <div className="mb-8 text-center">
+        <div className="flex items-center justify-center md:justify-start mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to notes
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold">Upgrade to Premium</h1>
         <p className="text-muted-foreground mt-2">
           Choose the plan that works best for you
@@ -57,10 +68,10 @@ const Subscription = () => {
         </div>
 
         {/* Monthly Plan */}
-        <div className="border rounded-lg shadow-sm p-6 border-primary">
+        <div className="border rounded-lg shadow-sm p-6 border-amber-400 dark:border-amber-500">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-medium">Monthly</h3>
-            <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm">
+            <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-sm">
               Popular
             </span>
           </div>
@@ -87,11 +98,11 @@ const Subscription = () => {
             </li>
           </ul>
           <Button 
-            className="w-full"
+            className="w-full bg-amber-500 hover:bg-amber-600"
             onClick={() => handleSelectPlan("monthly")}
           >
             <Sparkles className="mr-2 h-4 w-4" />
-            Select Plan
+            Upgrade Now
           </Button>
         </div>
 
@@ -127,7 +138,7 @@ const Subscription = () => {
           </ul>
           <Button 
             variant="outline" 
-            className="w-full border-primary text-primary hover:bg-primary/10"
+            className="w-full border-amber-400 dark:border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20"
             onClick={() => handleSelectPlan("annual")}
           >
             <Sparkles className="mr-2 h-4 w-4" />
