@@ -18,7 +18,7 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any | null>(null);
   const location = useLocation();
   const { toast } = useToast();
   
