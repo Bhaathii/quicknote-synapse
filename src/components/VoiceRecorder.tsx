@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, Square, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void;
@@ -17,11 +18,18 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const location = useLocation();
+  const { toast } = useToast();
   
   // Check if user has premium from location state (after payment)
   const hasPremiumFromPayment = location.state?.isPremium || false;
   const userHasPremium = isPremium || hasPremiumFromPayment;
+  
+  // Check if browser supports SpeechRecognition
+  const isSpeechRecognitionSupported = () => {
+    return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+  };
   
   // Clean up on unmount
   useEffect(() => {
@@ -32,69 +40,114 @@ export function VoiceRecorder({ onTranscription, isPremium = false }: VoiceRecor
       if (mediaRecorderRef.current && isRecording) {
         mediaRecorderRef.current.stop();
       }
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
     };
   }, [isRecording]);
   
   const startRecording = async () => {
     if (!userHasPremium) {
-      alert("Voice recording is a premium feature. Upgrade to unlock!");
+      toast({
+        title: "Premium Feature",
+        description: "Voice recording is a premium feature. Upgrade to unlock!",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isSpeechRecognitionSupported()) {
+      toast({
+        title: "Not Supported",
+        description: "Speech recognition is not supported in your browser. Try Chrome or Edge.",
+        variant: "destructive",
+      });
       return;
     }
     
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+      // Request microphone access
+      await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
+      // Initialize speech recognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US'; // Set language
+      
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setRecordingTime(0);
+        
+        // Start timer
+        timerRef.current = window.setInterval(() => {
+          setRecordingTime((prev) => prev + 1);
+        }, 1000);
+      };
+      
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        // If we have a final transcript, send it
+        if (finalTranscript) {
+          onTranscription(finalTranscript);
         }
       };
       
-      mediaRecorder.onstop = handleRecordingStop;
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        stopRecording();
+        toast({
+          title: "Recognition Error",
+          description: `Error: ${event.error}. Please try again.`,
+          variant: "destructive",
+        });
+      };
       
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
+      recognition.onend = () => {
+        if (isRecording) {
+          stopRecording();
+        }
+      };
       
-      // Start timer
-      timerRef.current = window.setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
-      }, 1000);
+      // Start recognition
+      recognition.start();
+      
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      alert("Could not access microphone. Please check permissions.");
+      toast({
+        title: "Microphone Error",
+        description: "Could not access microphone. Please check permissions.",
+        variant: "destructive",
+      });
     }
   };
   
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      // Clear timer
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      setIsRecording(false);
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
-  };
-  
-  const handleRecordingStop = async () => {
-    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
     
-    // Mock transcription process (in real app, you'd send to a speech-to-text API)
-    setIsProcessing(true);
+    // Clear timer
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     
-    // Simulate API call delay
-    setTimeout(() => {
-      // Mock transcription result
-      const mockTranscription = "This is a simulated transcription of your voice recording. In a real application, this would be the text converted from your speech using a service like Google Speech-to-Text, Amazon Transcribe, or another speech recognition API.";
-      
-      onTranscription(mockTranscription);
-      setIsProcessing(false);
-    }, 2000);
+    setIsRecording(false);
+    setIsProcessing(false);
   };
   
   // Format seconds to MM:SS
