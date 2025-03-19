@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   User, 
@@ -6,7 +7,8 @@ import {
   signOut, 
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup 
+  signInWithPopup,
+  updateProfile 
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -67,7 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // Request additional scopes if needed
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      const result = await signInWithPopup(auth, provider);
+      
+      // The user object should already have the photoURL set from Google
+      // But we can ensure it's updated if needed
+      if (result.user && !result.user.photoURL && result.user.providerData[0]?.photoURL) {
+        await updateProfile(result.user, {
+          photoURL: result.user.providerData[0].photoURL
+        });
+      }
+      
       toast({
         title: "Welcome!",
         description: "You've successfully signed in with Google",

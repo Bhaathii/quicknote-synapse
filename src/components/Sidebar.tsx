@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { NoteItem } from "@/components/NoteItem";
 import { SearchBar } from "@/components/SearchBar";
@@ -13,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { UserProfile } from "@/components/UserProfile";
 
 interface SidebarProps {
   notes: Note[];
@@ -60,8 +60,16 @@ export function Sidebar({
       "border-r bg-card w-72 flex flex-col",
       isMobile && "absolute z-10 h-full"
     )}>
+      <div className="p-4 border-b flex items-center justify-between">
+        <h1 className="text-xl font-semibold">QuickNote</h1>
+        <ThemeToggle />
+      </div>
+      
       <div className="p-4 border-b">
-        <h1 className="text-xl font-semibold mb-4">QuickNote</h1>
+        <UserProfile />
+      </div>
+      
+      <div className="p-4 border-b">
         <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
       </div>
       
@@ -115,7 +123,7 @@ export function Sidebar({
       </ScrollArea>
       
       <div className="p-4 border-t space-y-4">
-        {/* Premium Upgrade Button - Styled like the image */}
+        {/* Premium Upgrade Button */}
         <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-amber-400" />
@@ -134,7 +142,7 @@ export function Sidebar({
           </Button>
         </div>
         
-        {/* Settings, Shortcuts, Logout, Theme Toggle */}
+        {/* Settings, Shortcuts, Logout buttons */}
         <div className="grid grid-cols-2 gap-2">
           <Button 
             variant="outline" 
@@ -160,15 +168,11 @@ export function Sidebar({
             variant="outline" 
             size="sm"
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 col-span-2"
           >
             <LogOut className="h-4 w-4" />
             <span>Logout</span>
           </Button>
-          
-          <div className="flex items-center justify-center h-9 border rounded-md">
-            <ThemeToggle />
-          </div>
         </div>
       </div>
       
