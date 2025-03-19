@@ -7,8 +7,9 @@ import { SettingsDialog } from "@/components/SettingsDialog";
 import { Note } from "@/hooks/useNotes";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CategorySelector } from "@/components/CategorySelector";
 import { cn } from "@/lib/utils";
-import { Keyboard, LogOut, Plus, Settings, Sparkles } from "lucide-react";
+import { Keyboard, LogOut, Plus, Settings, Sparkles, Tag } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 import { useAuth } from "@/context/AuthContext";
@@ -19,10 +20,14 @@ interface SidebarProps {
   notes: Note[];
   activeNote: Note | null;
   onSelectNote: (note: Note) => void;
-  onCreateNote: () => void;
+  onCreateNote: (category?: string) => void;
   onPinNote: (id: string, isPinned: boolean) => void;
   onSearch: (query: string) => void;
   searchInputRef?: (ref: HTMLInputElement | null) => void;
+  categories: string[];
+  onSelectCategory: (category: string) => void;
+  onAddCategory: (category: string) => void;
+  selectedCategory: string;
 }
 
 export function Sidebar({
@@ -33,6 +38,10 @@ export function Sidebar({
   onPinNote,
   onSearch,
   searchInputRef,
+  categories,
+  onSelectCategory,
+  onAddCategory,
+  selectedCategory,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -55,6 +64,10 @@ export function Sidebar({
   const handlePremiumClick = () => {
     navigate("/subscription");
   };
+
+  const handleCreateNote = () => {
+    onCreateNote(selectedCategory !== "All" ? selectedCategory : "Uncategorized");
+  };
   
   return (
     <div className={cn(
@@ -73,9 +86,19 @@ export function Sidebar({
       <div className="p-4 border-b">
         <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
       </div>
+
+      <div className="p-4 border-b">
+        <CategorySelector
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={onSelectCategory}
+          onAddCategory={onAddCategory}
+          className="mb-2"
+        />
+      </div>
       
       <div className="flex items-center justify-between p-4 border-b">
-        <Button onClick={onCreateNote} variant="default" size="sm" className="w-full" title="New Note (Ctrl+N)">
+        <Button onClick={handleCreateNote} variant="default" size="sm" className="w-full" title="New Note (Ctrl+N)">
           <Plus className="h-4 w-4 mr-1" />
           New Note
         </Button>

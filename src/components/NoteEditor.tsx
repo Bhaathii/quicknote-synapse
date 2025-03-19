@@ -15,15 +15,24 @@ import {
   Heading, 
   Quote,
   Trash2,
-  Keyboard
+  Keyboard,
+  Tag
 } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface NoteEditorProps {
   note: Note | null;
   onUpdate: (id: string, data: Partial<Omit<Note, "id">>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  categories: string[];
 }
 
 const AUTOSAVE_DELAY = 750; // milliseconds
@@ -31,7 +40,8 @@ const AUTOSAVE_DELAY = 750; // milliseconds
 export function NoteEditor({ 
   note, 
   onUpdate, 
-  onDelete
+  onDelete,
+  categories
 }: NoteEditorProps) {
   const [title, setTitle] = useState(note?.title || "");
   const [showSaveIndicator, setShowSaveIndicator] = useState(false);
@@ -87,6 +97,13 @@ export function NoteEditor({
     }
   }, [note, saveNote]);
   
+  // Handle category change
+  const handleCategoryChange = (category: string) => {
+    if (note) {
+      saveNote(note.id, { category });
+    }
+  };
+  
   // Handle delete note
   const handleDelete = async () => {
     if (note && window.confirm("Are you sure you want to delete this note?")) {
@@ -140,39 +157,64 @@ export function NoteEditor({
     );
   }
 
+  // Filter out the "All" category which is only for filtering
+  const noteCategories = categories.filter(cat => cat !== "All");
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-2 relative p-2">
+      <div className="flex flex-col gap-2 mb-2 relative p-2">
         <Input
           value={title}
           onChange={handleTitleChange}
           placeholder="Untitled"
           className="text-xl font-medium border-none bg-transparent focus-visible:ring-0 px-2"
         />
-        <div className="flex items-center gap-2">
-          {showSaveIndicator && (
-            <span className="text-xs text-muted-foreground animate-fade-in">
-              Saving...
-            </span>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowKeyboardShortcuts(true)}
-            aria-label="Keyboard shortcuts"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Keyboard className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-            className="text-destructive hover:text-destructive/90"
-            aria-label="Delete note"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
+        
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-muted-foreground" />
+            <Select 
+              value={note.category || "Uncategorized"} 
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger className="h-8 w-[180px] text-sm">
+                <SelectValue placeholder="Set category" />
+              </SelectTrigger>
+              <SelectContent>
+                {noteCategories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {showSaveIndicator && (
+              <span className="text-xs text-muted-foreground animate-fade-in">
+                Saving...
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowKeyboardShortcuts(true)}
+              aria-label="Keyboard shortcuts"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Keyboard className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDelete}
+              className="text-destructive hover:text-destructive/90"
+              aria-label="Delete note"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
       

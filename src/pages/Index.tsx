@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { NoteEditor } from "@/components/NoteEditor";
@@ -41,6 +40,8 @@ function AppContent() {
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [searchInputRef, setSearchInputRef] = useState<HTMLInputElement | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
   
   const {
     notes,
@@ -52,13 +53,15 @@ function AppContent() {
     updateNote,
     deleteNote,
     searchNotes,
+    getCategories,
+    filterByCategory
   } = useNotes();
   
   // Register app-level keyboard shortcuts
   useKeyboardShortcuts({
     "ctrl+n": () => {
       if (user) {
-        createNote();
+        createNote(selectedCategory !== "All" ? selectedCategory : undefined);
       }
     },
     "ctrl+/": () => {
@@ -137,9 +140,32 @@ function AppContent() {
       updateNote(activeNote.id, { content: updatedContent });
     }
   };
+
+  // Handle category selection
+  const handleSelectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setFilteredNotes([]);
+  };
+
+  // Handle adding a new category
+  const handleAddCategory = (category: string) => {
+    if (!customCategories.includes(category)) {
+      setCustomCategories(prev => [...prev, category]);
+    }
+    setSelectedCategory(category);
+  };
   
-  // Filter displayed notes based on search
-  const displayedNotes = filteredNotes?.length > 0 ? filteredNotes : notes;
+  // Get all categories
+  const allCategories = notes.length > 0 
+    ? getCategories().concat(customCategories.filter(cat => !getCategories().includes(cat)))
+    : ["All", "Uncategorized", ...customCategories];
+  
+  // Filter displayed notes based on search and category
+  const displayedNotes = filteredNotes?.length > 0 
+    ? filteredNotes 
+    : selectedCategory !== "All" 
+      ? filterByCategory(selectedCategory)
+      : notes;
   
   // Auth form rendering
   if (loading) {
@@ -263,10 +289,14 @@ function AppContent() {
         notes={displayedNotes}
         activeNote={activeNote}
         onSelectNote={setActiveNote}
-        onCreateNote={createNote}
+        onCreateNote={(category) => createNote(category)}
         onPinNote={(id, isPinned) => updateNote(id, { isPinned })}
         onSearch={handleSearch}
         searchInputRef={setSearchInputRef}
+        categories={allCategories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleSelectCategory}
+        onAddCategory={handleAddCategory}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -295,6 +325,7 @@ function AppContent() {
             note={activeNote}
             onUpdate={updateNote}
             onDelete={deleteNote}
+            categories={allCategories.filter(cat => cat !== "All")}
           />
         </div>
       </div>

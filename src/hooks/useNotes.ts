@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   collection, 
@@ -25,6 +24,7 @@ export interface Note {
   updatedAt: Timestamp;
   isPinned: boolean;
   userId: string;
+  category?: string; // Added category field
 }
 
 export function useNotes() {
@@ -133,7 +133,7 @@ export function useNotes() {
   }, [user, activeNote, toast]);
 
   // Create a new note
-  const createNote = async () => {
+  const createNote = async (category?: string) => {
     try {
       if (!user) return;
 
@@ -143,7 +143,8 @@ export function useNotes() {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         isPinned: false,
-        userId: user.uid
+        userId: user.uid,
+        category: category || "Uncategorized" // Set default category
       };
 
       const docRef = await addDoc(collection(db, "notes"), newNote);
@@ -219,6 +220,22 @@ export function useNotes() {
     }
   };
 
+  // Get all unique categories from notes
+  const getCategories = () => {
+    if (!notes.length) return ["Uncategorized"];
+    
+    const categories = notes.map(note => note.category || "Uncategorized");
+    return ["All", ...new Set(categories)];
+  };
+
+  // Filter notes by category
+  const filterByCategory = (category: string) => {
+    if (category === "All") {
+      return notes;
+    }
+    return notes.filter(note => (note.category || "Uncategorized") === category);
+  };
+
   // Search notes
   const searchNotes = async (searchQuery: string) => {
     if (!user || !searchQuery.trim()) {
@@ -262,5 +279,7 @@ export function useNotes() {
     updateNote,
     deleteNote,
     searchNotes,
+    getCategories,
+    filterByCategory,
   };
 }
