@@ -51,6 +51,12 @@ function AppContent() {
     updateNote,
     deleteNote,
     searchNotes,
+    tags,
+    selectedTags,
+    toggleTagFilter,
+    clearTagFilters,
+    addTagToNote,
+    removeTagFromNote
   } = useNotes();
   
   // Register app-level keyboard shortcuts
@@ -266,6 +272,10 @@ function AppContent() {
         onPinNote={(id, isPinned) => updateNote(id, { isPinned })}
         onSearch={handleSearch}
         searchInputRef={setSearchInputRef}
+        tags={tags}
+        selectedTags={selectedTags}
+        onToggleTag={toggleTagFilter}
+        onClearTags={clearTagFilters}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -294,6 +304,9 @@ function AppContent() {
             note={activeNote}
             onUpdate={updateNote}
             onDelete={deleteNote}
+            tags={tags}
+            onAddTagToNote={addTagToNote}
+            onRemoveTagFromNote={removeTagFromNote}
           />
         </div>
       </div>
