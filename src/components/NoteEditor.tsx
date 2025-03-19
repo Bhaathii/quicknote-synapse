@@ -15,23 +15,36 @@ import {
   Heading, 
   Quote,
   Trash2,
-  Keyboard 
+  Keyboard,
+  Tag
 } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
+import { TagsSelector } from "@/components/TagsSelector";
 
 interface NoteEditorProps {
   note: Note | null;
   onUpdate: (id: string, data: Partial<Omit<Note, "id">>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  tags: string[];
+  onAddTagToNote: (noteId: string, tag: string) => Promise<void>;
+  onRemoveTagFromNote: (noteId: string, tag: string) => Promise<void>;
 }
 
 const AUTOSAVE_DELAY = 750; // milliseconds
 
-export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
+export function NoteEditor({ 
+  note, 
+  onUpdate, 
+  onDelete,
+  tags,
+  onAddTagToNote,
+  onRemoveTagFromNote
+}: NoteEditorProps) {
   const [title, setTitle] = useState(note?.title || "");
   const [showSaveIndicator, setShowSaveIndicator] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showTagsPanel, setShowTagsPanel] = useState(false);
   
   const editor = useEditor({
     extensions: [
@@ -82,6 +95,20 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
       saveNote(note.id, { content });
     }
   }, [note, saveNote]);
+  
+  // Handle adding tag to note
+  const handleAddTagToNote = async (tag: string) => {
+    if (note) {
+      await onAddTagToNote(note.id, tag);
+    }
+  };
+  
+  // Handle removing tag from note
+  const handleRemoveTagFromNote = async (tag: string) => {
+    if (note) {
+      await onRemoveTagFromNote(note.id, tag);
+    }
+  };
   
   // Handle delete note
   const handleDelete = async () => {
@@ -138,7 +165,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4 relative p-2">
+      <div className="flex justify-between items-center mb-2 relative p-2">
         <Input
           value={title}
           onChange={handleTitleChange}
@@ -151,6 +178,19 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
               Saving...
             </span>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowTagsPanel(!showTagsPanel)}
+            aria-label="Manage tags"
+            title="Manage tags"
+            className={cn(
+              "text-muted-foreground hover:text-foreground",
+              showTagsPanel && "bg-muted"
+            )}
+          >
+            <Tag className="h-5 w-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -172,9 +212,24 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
         </div>
       </div>
       
+      {showTagsPanel && (
+        <div className="px-4 py-2 mb-2 bg-muted/50 rounded-md mx-2">
+          <TagsSelector
+            tags={tags}
+            selectedTags={[]}
+            onToggleTag={() => {}}
+            onClearTags={() => {}}
+            onAddTagToNote={handleAddTagToNote}
+            onRemoveTagFromNote={handleRemoveTagFromNote}
+            noteTags={note.tags || []}
+            isFilterMode={false}
+          />
+        </div>
+      )}
+      
       {editor && (
         <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex gap-1 mb-2">
+          <div className="flex gap-1 mb-2 px-2">
             <Button
               variant="ghost"
               size="sm"
