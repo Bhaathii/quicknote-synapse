@@ -15,20 +15,15 @@ import {
   Heading, 
   Quote,
   Trash2,
-  Keyboard,
-  Tag
+  Keyboard
 } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
-import { TagsSelector } from "@/components/TagsSelector";
 
 interface NoteEditorProps {
   note: Note | null;
   onUpdate: (id: string, data: Partial<Omit<Note, "id">>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  tags: string[];
-  onAddTagToNote: (noteId: string, tag: string) => Promise<void>;
-  onRemoveTagFromNote: (noteId: string, tag: string) => Promise<void>;
 }
 
 const AUTOSAVE_DELAY = 750; // milliseconds
@@ -36,15 +31,11 @@ const AUTOSAVE_DELAY = 750; // milliseconds
 export function NoteEditor({ 
   note, 
   onUpdate, 
-  onDelete,
-  tags,
-  onAddTagToNote,
-  onRemoveTagFromNote
+  onDelete
 }: NoteEditorProps) {
   const [title, setTitle] = useState(note?.title || "");
   const [showSaveIndicator, setShowSaveIndicator] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [showTagsPanel, setShowTagsPanel] = useState(false);
   
   const editor = useEditor({
     extensions: [
@@ -95,20 +86,6 @@ export function NoteEditor({
       saveNote(note.id, { content });
     }
   }, [note, saveNote]);
-  
-  // Handle adding tag to note
-  const handleAddTagToNote = async (tag: string) => {
-    if (note) {
-      await onAddTagToNote(note.id, tag);
-    }
-  };
-  
-  // Handle removing tag from note
-  const handleRemoveTagFromNote = async (tag: string) => {
-    if (note) {
-      await onRemoveTagFromNote(note.id, tag);
-    }
-  };
   
   // Handle delete note
   const handleDelete = async () => {
@@ -181,19 +158,6 @@ export function NoteEditor({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowTagsPanel(!showTagsPanel)}
-            aria-label="Manage tags"
-            title="Manage tags"
-            className={cn(
-              "text-muted-foreground hover:text-foreground",
-              showTagsPanel && "bg-muted"
-            )}
-          >
-            <Tag className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             onClick={() => setShowKeyboardShortcuts(true)}
             aria-label="Keyboard shortcuts"
             className="text-muted-foreground hover:text-foreground"
@@ -211,21 +175,6 @@ export function NoteEditor({
           </Button>
         </div>
       </div>
-      
-      {showTagsPanel && (
-        <div className="px-4 py-2 mb-2 bg-muted/50 rounded-md mx-2">
-          <TagsSelector
-            tags={tags}
-            selectedTags={[]}
-            onToggleTag={() => {}}
-            onClearTags={() => {}}
-            onAddTagToNote={handleAddTagToNote}
-            onRemoveTagFromNote={handleRemoveTagFromNote}
-            noteTags={note.tags || []}
-            isFilterMode={false}
-          />
-        </div>
-      )}
       
       {editor && (
         <div className="flex flex-col flex-1 overflow-hidden">

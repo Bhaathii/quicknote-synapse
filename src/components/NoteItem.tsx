@@ -1,9 +1,8 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { Note } from "@/hooks/useNotes";
-import { Pin, Tag } from "lucide-react";
+import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 interface NoteItemProps {
   note: Note;
@@ -62,29 +61,6 @@ export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
       <div className="text-sm text-muted-foreground line-clamp-2 mb-2">
         {getPreview(note.content)}
       </div>
-      
-      {note.tags && note.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 my-2">
-          {note.tags.slice(0, 3).map(tag => (
-            <Badge 
-              key={tag} 
-              variant="outline" 
-              className="text-xs py-0 px-1.5 h-5"
-            >
-              <Tag className="h-2.5 w-2.5 mr-1" />
-              {tag}
-            </Badge>
-          ))}
-          {note.tags.length > 3 && (
-            <Badge 
-              variant="outline" 
-              className="text-xs py-0 px-1.5 h-5"
-            >
-              +{note.tags.length - 3}
-            </Badge>
-          )}
-        </div>
-      )}
       
       <div className="text-xs text-muted-foreground mt-2">
         {timeAgo}

@@ -14,7 +14,6 @@ import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "@/components/UserProfile";
-import { TagsSelector } from "@/components/TagsSelector";
 
 interface SidebarProps {
   notes: Note[];
@@ -24,10 +23,6 @@ interface SidebarProps {
   onPinNote: (id: string, isPinned: boolean) => void;
   onSearch: (query: string) => void;
   searchInputRef?: (ref: HTMLInputElement | null) => void;
-  tags: string[];
-  selectedTags: string[];
-  onToggleTag: (tag: string) => void;
-  onClearTags: () => void;
 }
 
 export function Sidebar({
@@ -38,10 +33,6 @@ export function Sidebar({
   onPinNote,
   onSearch,
   searchInputRef,
-  tags,
-  selectedTags,
-  onToggleTag,
-  onClearTags,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -90,18 +81,6 @@ export function Sidebar({
         </Button>
       </div>
       
-      {tags.length > 0 && (
-        <div className="p-4 border-b">
-          <TagsSelector
-            tags={tags}
-            selectedTags={selectedTags}
-            onToggleTag={onToggleTag}
-            onClearTags={onClearTags}
-            isFilterMode={true}
-          />
-        </div>
-      )}
-      
       <ScrollArea className="flex-1">
         {pinnedNotes.length > 0 && (
           <div className="p-2">
@@ -137,9 +116,7 @@ export function Sidebar({
               ))
             ) : (
               <p className="text-sm text-muted-foreground p-2">
-                {selectedTags.length > 0 
-                  ? "No notes match the selected tags"
-                  : "No notes found. Create a new one!"}
+                No notes found. Create a new one!
               </p>
             )}
           </div>
