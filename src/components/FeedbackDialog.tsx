@@ -25,11 +25,13 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { formatDistanceToNow } from "date-fns";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface FeedbackItem {
   id: string;
   userId: string;
   userName: string;
+  userPhoto?: string;
   content: string;
   rating: number;
   createdAt: Timestamp;
@@ -107,6 +109,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       await addDoc(collection(db, "feedback"), {
         userId: user?.uid || "anonymous",
         userName: userName || "Anonymous User",
+        userPhoto: user?.photoURL || null,
         content,
         rating,
         createdAt: serverTimestamp()
@@ -223,7 +226,15 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
                   <div key={item.id} className="border rounded-lg p-3 bg-accent/20">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center">
-                        <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <Avatar className="h-6 w-6 mr-2">
+                          {item.userPhoto ? (
+                            <AvatarImage src={item.userPhoto} alt={item.userName} />
+                          ) : (
+                            <AvatarFallback className="text-xs">
+                              {item.userName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
                         <span className="font-medium">{item.userName}</span>
                       </div>
                       <div className="flex items-center text-yellow-500">
