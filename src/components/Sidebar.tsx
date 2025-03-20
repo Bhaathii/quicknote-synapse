@@ -77,7 +77,7 @@ export function Sidebar({
   return (
     <div className={cn(
       "border-r bg-card transition-all duration-300 flex flex-col relative h-full",
-      collapsed ? "w-[60px]" : "w-[520px]",
+      collapsed ? "w-[60px]" : "w-[450px]",
       isMobile && "absolute z-10 h-full"
     )}>
       <div className="p-4 border-b flex items-center justify-between">
