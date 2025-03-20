@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategorySelector } from "@/components/CategorySelector";
 import { cn } from "@/lib/utils";
-import { Keyboard, LogOut, Plus, Settings, Sparkles, Tag } from "lucide-react";
+import { Keyboard, LogOut, Plus, Settings, Sparkles, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 import { useAuth } from "@/context/AuthContext";
@@ -45,6 +45,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -69,43 +70,77 @@ export function Sidebar({
     onCreateNote(selectedCategory !== "All" ? selectedCategory : "Uncategorized");
   };
   
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+  
   return (
     <div className={cn(
-      "border-r bg-card w-72 flex flex-col",
+      "border-r bg-card transition-all duration-300 flex flex-col relative h-full",
+      collapsed ? "w-[60px]" : "w-[320px]",
       isMobile && "absolute z-10 h-full"
     )}>
       <div className="p-4 border-b flex items-center justify-between">
-        <h1 className="text-xl font-semibold">QuickNote</h1>
-        <ThemeToggle />
+        {!collapsed && <h1 className="text-xl font-semibold">QuickNote</h1>}
+        <div className="flex items-center gap-2">
+          {!collapsed && <ThemeToggle />}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleSidebar}
+            className="h-8 w-8"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
       
-      <div className="p-4 border-b">
-        <UserProfile />
-      </div>
+      {!collapsed && (
+        <div className="p-4 border-b">
+          <UserProfile />
+        </div>
+      )}
       
-      <div className="p-4 border-b">
-        <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
+      <div className={cn("p-4 border-b", collapsed && "flex justify-center")}>
+        {!collapsed ? (
+          <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
+        ) : (
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Tag className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
-      <div className="p-4 border-b">
-        <CategorySelector
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={onSelectCategory}
-          onAddCategory={onAddCategory}
-          className="mb-2"
-        />
-      </div>
+      {!collapsed && (
+        <div className="p-4 border-b">
+          <CategorySelector
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={onSelectCategory}
+            onAddCategory={onAddCategory}
+            className="mb-2"
+          />
+        </div>
+      )}
       
-      <div className="flex items-center justify-between p-4 border-b">
-        <Button onClick={handleCreateNote} variant="default" size="sm" className="w-full" title="New Note (Ctrl+N)">
-          <Plus className="h-4 w-4 mr-1" />
-          New Note
+      <div className={cn(
+        "flex items-center justify-center p-4 border-b",
+        collapsed && "flex-col"
+      )}>
+        <Button 
+          onClick={handleCreateNote} 
+          variant="default" 
+          size={collapsed ? "icon" : "sm"} 
+          className={cn("", collapsed ? "w-8 h-8" : "w-full")} 
+          title="New Note (Ctrl+N)"
+        >
+          <Plus className="h-4 w-4" />
+          {!collapsed && <span className="ml-1">New Note</span>}
         </Button>
       </div>
       
       <ScrollArea className="flex-1">
-        {pinnedNotes.length > 0 && (
+        {pinnedNotes.length > 0 && !collapsed && (
           <div className="p-2">
             <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">PINNED</h2>
             <div className="space-y-1">
@@ -116,6 +151,7 @@ export function Sidebar({
                   isActive={activeNote?.id === note.id}
                   onClick={() => onSelectNote(note)}
                   onPin={() => onPinNote(note.id, !note.isPinned)}
+                  collapsed={collapsed}
                 />
               ))}
             </div>
@@ -123,7 +159,7 @@ export function Sidebar({
         )}
         
         <div className="p-2">
-          {pinnedNotes.length > 0 && (
+          {pinnedNotes.length > 0 && !collapsed && (
             <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">NOTES</h2>
           )}
           <div className="space-y-1">
@@ -135,70 +171,106 @@ export function Sidebar({
                   isActive={activeNote?.id === note.id}
                   onClick={() => onSelectNote(note)}
                   onPin={() => onPinNote(note.id, !note.isPinned)}
+                  collapsed={collapsed}
                 />
               ))
             ) : (
-              <p className="text-sm text-muted-foreground p-2">
-                No notes found. Create a new one!
-              </p>
+              !collapsed && (
+                <p className="text-sm text-muted-foreground p-2">
+                  No notes found. Create a new one!
+                </p>
+              )
             )}
           </div>
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t space-y-4">
-        {/* Premium Upgrade Button */}
-        <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-amber-400" />
-            <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
+      {!collapsed && (
+        <div className="p-4 border-t space-y-4">
+          {/* Premium Upgrade Button */}
+          <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-5 w-5 text-amber-400" />
+              <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">
+              Get voice notes, more storage and remove ads
+            </p>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium"
+              onClick={handlePremiumClick}
+            >
+              Upgrade Now
+            </Button>
           </div>
-          <p className="text-gray-400 text-sm mb-3">
-            Get voice notes, more storage and remove ads
-          </p>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium"
-            onClick={handlePremiumClick}
-          >
-            Upgrade Now
-          </Button>
+          
+          {/* Settings, Shortcuts, Logout buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShortcutsOpen(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <Keyboard className="h-4 w-4" />
+              <span>Shortcuts</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-2 col-span-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
         </div>
-        
-        {/* Settings, Shortcuts, Logout buttons */}
-        <div className="grid grid-cols-2 gap-2">
+      )}
+      
+      {collapsed && (
+        <div className="p-2 border-t flex flex-col items-center gap-2">
           <Button 
-            variant="outline" 
-            size="sm"
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
             onClick={() => setSettingsOpen(true)}
-            className="flex items-center justify-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            <span>Settings</span>
           </Button>
           
           <Button 
-            variant="outline" 
-            size="sm"
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
             onClick={() => setShortcutsOpen(true)}
-            className="flex items-center justify-center gap-2"
           >
             <Keyboard className="h-4 w-4" />
-            <span>Shortcuts</span>
           </Button>
           
           <Button 
-            variant="outline" 
-            size="sm"
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2 col-span-2"
           >
             <LogOut className="h-4 w-4" />
-            <span>Logout</span>
           </Button>
         </div>
-      </div>
+      )}
       
       <SettingsDialog 
         open={settingsOpen} 

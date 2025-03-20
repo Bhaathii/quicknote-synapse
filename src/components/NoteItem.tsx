@@ -10,22 +10,40 @@ interface NoteItemProps {
   isActive: boolean;
   onClick: () => void;
   onPin: () => void;
+  collapsed?: boolean;
 }
 
-export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
+export function NoteItem({ note, isActive, onClick, onPin, collapsed = false }: NoteItemProps) {
   // Extract a preview from content (strip HTML tags)
   const getPreview = (content: string) => {
     // Remove HTML tags
     const plainText = content.replace(/<[^>]*>/g, "");
     // Return truncated text
-    return plainText.length > 100 
-      ? plainText.substring(0, 100) + "..." 
+    return plainText.length > 150 
+      ? plainText.substring(0, 150) + "..." 
       : plainText;
   };
 
   const timeAgo = note.updatedAt 
     ? formatDistanceToNow(note.updatedAt.toDate(), { addSuffix: true })
     : "";
+
+  if (collapsed) {
+    return (
+      <div
+        className={cn(
+          "p-2 cursor-pointer rounded-lg mb-2 flex justify-center",
+          isActive
+            ? "bg-accent text-accent-foreground"
+            : "hover:bg-muted/50"
+        )}
+        onClick={onClick}
+        title={note.title || "Untitled"}
+      >
+        <div className="h-2 w-2 rounded-full bg-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -59,7 +77,7 @@ export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
         </button>
       </div>
       
-      <div className="text-sm text-muted-foreground line-clamp-2 mb-2">
+      <div className="text-sm text-muted-foreground line-clamp-3 mb-2">
         {getPreview(note.content)}
       </div>
 

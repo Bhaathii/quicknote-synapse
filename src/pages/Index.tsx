@@ -301,20 +301,21 @@ function AppContent() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-end p-2 border-b">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mr-2"
-            onClick={() => setFeedbackOpen(true)}
-          >
-            <MessageSquare className="h-4 w-4 mr-1" />
-            Feedback
-          </Button>
-          
-          <VoiceRecorder 
-            onTranscription={handleTranscription} 
-            isPremium={false} // Set to true for premium users
-          />
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Feedback
+            </Button>
+            
+            <VoiceRecorder 
+              onTranscription={handleTranscription} 
+              isPremium={false} // Set to true for premium users
+            />
+          </div>
         </div>
         
         <div className={cn(
