@@ -106,7 +106,7 @@ export function Sidebar({
         </SidebarHeader>
         
         <SidebarContent>
-          <div className="p-4 space-y-4">
+          <div className="p-3 space-y-3">
             <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
             
             <CategorySelector
@@ -129,7 +129,7 @@ export function Sidebar({
               <>
                 <SidebarGroupLabel className="px-4 pt-2">PINNED</SidebarGroupLabel>
                 <SidebarGroupContent className="px-2">
-                  <ScrollArea className="h-auto max-h-[300px]">
+                  <ScrollArea className="h-auto max-h-[250px]">
                     <div className="space-y-1 px-1">
                       {pinnedNotes.map(note => (
                         <NoteItem 
@@ -152,7 +152,7 @@ export function Sidebar({
               {pinnedNotes.length > 0 ? "NOTES" : "ALL NOTES"}
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
-              <ScrollArea className="h-auto max-h-[calc(100vh-400px)]">
+              <ScrollArea className="h-auto max-h-[calc(100vh-420px)]">
                 <div className="space-y-1 px-1">
                   {unpinnedNotes.length > 0 ? (
                     unpinnedNotes.map(note => (
@@ -175,14 +175,14 @@ export function Sidebar({
           </SidebarGroup>
         </SidebarContent>
         
-        <SidebarFooter className="border-t space-y-2 p-4">
+        <SidebarFooter className="border-t space-y-2 p-3">
           {/* Premium Upgrade Button */}
-          <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
+          <div className="bg-[#2A1E12] rounded-xl p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-5 w-5 text-amber-400" />
-              <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              <h3 className="text-base font-semibold text-white">Upgrade to Premium</h3>
             </div>
-            <p className="text-gray-400 text-sm mb-3">
+            <p className="text-gray-400 text-xs mb-2">
               Get voice notes, more storage and remove ads
             </p>
             <Button 
@@ -195,15 +195,15 @@ export function Sidebar({
             </Button>
           </div>
           
-          {/* Settings, Shortcuts, Feedback buttons */}
+          {/* Settings, Shortcuts, Feedback, Logout buttons */}
           <div className="grid grid-cols-2 gap-2">
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setSettingsOpen(true)}
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-1 text-xs"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
               <span>Settings</span>
             </Button>
             
@@ -211,9 +211,9 @@ export function Sidebar({
               variant="outline" 
               size="sm"
               onClick={() => setShortcutsOpen(true)}
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-1 text-xs"
             >
-              <Keyboard className="h-4 w-4" />
+              <Keyboard className="h-3.5 w-3.5" />
               <span>Shortcuts</span>
             </Button>
             
@@ -221,9 +221,9 @@ export function Sidebar({
               variant="outline" 
               size="sm"
               onClick={() => setFeedbackOpen(true)}
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-1 text-xs"
             >
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare className="h-3.5 w-3.5" />
               <span>Feedback</span>
             </Button>
             
@@ -231,9 +231,9 @@ export function Sidebar({
               variant="outline" 
               size="sm"
               onClick={handleLogout}
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-1 text-xs"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
               <span>Logout</span>
             </Button>
           </div>
