@@ -13,8 +13,6 @@
     
     --sidebar: 0 0% 98%;
     --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-width: 14rem;
-    --sidebar-width-icon: 2.5rem;
     
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -50,8 +48,6 @@
     
     --sidebar: 240 11% 6%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-width: 14rem;
-    --sidebar-width-icon: 2.5rem;
     
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;

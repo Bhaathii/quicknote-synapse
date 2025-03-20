@@ -57,6 +57,7 @@ function AppContent() {
     filterByCategory
   } = useNotes();
   
+  // Register app-level keyboard shortcuts
   useKeyboardShortcuts({
     "ctrl+n": () => {
       if (user) {
@@ -70,6 +71,7 @@ function AppContent() {
     },
   });
   
+  // Handle form input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAuthForm((prev) => ({
@@ -78,6 +80,7 @@ function AppContent() {
     }));
   };
   
+  // Handle auth form submission
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { email, password, isLogin } = authForm;
@@ -93,6 +96,7 @@ function AppContent() {
     }
   };
   
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     try {
       setGoogleAuthError(false);
@@ -105,6 +109,7 @@ function AppContent() {
     }
   };
   
+  // Toggle between login and register forms
   const toggleAuthMode = () => {
     setAuthForm((prev) => ({
       ...prev,
@@ -113,6 +118,7 @@ function AppContent() {
     setGoogleAuthError(false);
   };
 
+  // Handle search
   const handleSearch = async (query: string) => {
     if (!query || query.trim() === "") {
       setFilteredNotes([]);
@@ -123,8 +129,10 @@ function AppContent() {
     setFilteredNotes(results);
   };
   
+  // Handle voice transcription
   const handleTranscription = (text: string) => {
     if (activeNote) {
+      // Append the transcription to current note content
       const updatedContent = activeNote.content 
         ? `${activeNote.content}<p>${text}</p>` 
         : `<p>${text}</p>`;
@@ -133,11 +141,13 @@ function AppContent() {
     }
   };
 
+  // Handle category selection
   const handleSelectCategory = (category: string) => {
     setSelectedCategory(category);
     setFilteredNotes([]);
   };
 
+  // Handle adding a new category
   const handleAddCategory = (category: string) => {
     if (!customCategories.includes(category)) {
       setCustomCategories(prev => [...prev, category]);
@@ -145,16 +155,19 @@ function AppContent() {
     setSelectedCategory(category);
   };
   
+  // Get all categories
   const allCategories = notes.length > 0 
     ? getCategories().concat(customCategories.filter(cat => !getCategories().includes(cat)))
     : ["All", "Uncategorized", ...customCategories];
   
+  // Filter displayed notes based on search and category
   const displayedNotes = filteredNotes?.length > 0 
     ? filteredNotes 
     : selectedCategory !== "All" 
       ? filterByCategory(selectedCategory)
       : notes;
   
+  // Auth form rendering
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -261,8 +274,10 @@ function AppContent() {
     );
   }
   
+  // Main app rendering (when authenticated)
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Display error state if notes failed to fetch */}
       {notesError && (
         <div className="fixed top-0 left-0 right-0 p-4 bg-destructive text-destructive-foreground z-50 flex items-center justify-center">
           <AlertCircle className="mr-2 h-5 w-5" />
@@ -285,7 +300,17 @@ function AppContent() {
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-end p-2 bg-background/80 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-end p-2 border-b">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mr-2"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            <MessageSquare className="h-4 w-4 mr-1" />
+            Feedback
+          </Button>
+          
           <VoiceRecorder 
             onTranscription={handleTranscription} 
             isPremium={false} // Set to true for premium users
@@ -304,6 +329,11 @@ function AppContent() {
           />
         </div>
       </div>
+      
+      <FeedbackDialog 
+        open={feedbackOpen} 
+        onOpenChange={setFeedbackOpen} 
+      />
     </div>
   );
 }
