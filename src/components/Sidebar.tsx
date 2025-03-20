@@ -9,12 +9,34 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategorySelector } from "@/components/CategorySelector";
 import { cn } from "@/lib/utils";
-import { Keyboard, LogOut, Plus, Settings, Sparkles, Tag, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  Keyboard, 
+  LogOut, 
+  Plus, 
+  Settings, 
+  Sparkles, 
+  ChevronLeft, 
+  ChevronRight, 
+  MessageSquare
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "@/components/UserProfile";
+import { 
+  Sidebar as ShadcnSidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarSeparator,
+  SidebarProvider,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import { FeedbackDialog } from "@/components/FeedbackDialog";
 
 interface SidebarProps {
   notes: Note[];
@@ -45,7 +67,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const isMobile = useIsMobile();
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -69,202 +91,154 @@ export function Sidebar({
   const handleCreateNote = () => {
     onCreateNote(selectedCategory !== "All" ? selectedCategory : "Uncategorized");
   };
-
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
   
   return (
-    <div className={cn(
-      "border-r bg-card flex flex-col relative",
-      collapsed ? "w-16" : "w-80",
-      isMobile && "absolute z-10 h-full transition-all duration-300"
-    )}>
-      {/* Collapse toggle button */}
-      <button 
-        onClick={toggleSidebar}
-        className="absolute -right-3 top-20 bg-primary text-primary-foreground w-6 h-12 rounded-r-md flex items-center justify-center z-20"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-      </button>
-
-      {!collapsed ? (
-        // Expanded sidebar content
-        <>
-          <div className="p-4 border-b flex items-center justify-between">
+    <SidebarProvider defaultOpen={!isMobile}>
+      <ShadcnSidebar>
+        <SidebarHeader className="py-4 px-2 border-b">
+          <div className="flex items-center justify-between px-2">
             <h1 className="text-xl font-semibold">QuickNote</h1>
             <ThemeToggle />
           </div>
-          
-          <div className="p-4 border-b">
+          <div className="mt-4">
             <UserProfile />
           </div>
-          
-          <div className="p-4 border-b">
+        </SidebarHeader>
+        
+        <SidebarContent>
+          <div className="p-4 space-y-4">
             <SearchBar onSearch={onSearch} searchInputRef={searchInputRef} />
-          </div>
-
-          <div className="p-4 border-b">
+            
             <CategorySelector
               categories={categories}
               selectedCategory={selectedCategory}
               onSelectCategory={onSelectCategory}
               onAddCategory={onAddCategory}
-              className="mb-2"
             />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border-b">
+            
             <Button onClick={handleCreateNote} variant="default" size="sm" className="w-full" title="New Note (Ctrl+N)">
               <Plus className="h-4 w-4 mr-1" />
               New Note
             </Button>
           </div>
           
-          <ScrollArea className="flex-1 pl-2 pr-2 pt-3">
+          <SidebarSeparator />
+          
+          <SidebarGroup>
             {pinnedNotes.length > 0 && (
-              <div className="pb-2">
-                <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">PINNED</h2>
-                <div className="space-y-1">
-                  {pinnedNotes.map(note => (
-                    <NoteItem 
-                      key={note.id}
-                      note={note}
-                      isActive={activeNote?.id === note.id}
-                      onClick={() => onSelectNote(note)}
-                      onPin={() => onPinNote(note.id, !note.isPinned)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <>
+                <SidebarGroupLabel className="px-4 pt-2">PINNED</SidebarGroupLabel>
+                <SidebarGroupContent className="px-2">
+                  <ScrollArea className="h-auto max-h-[300px]">
+                    <div className="space-y-1 px-1">
+                      {pinnedNotes.map(note => (
+                        <NoteItem 
+                          key={note.id}
+                          note={note}
+                          isActive={activeNote?.id === note.id}
+                          onClick={() => onSelectNote(note)}
+                          onPin={() => onPinNote(note.id, !note.isPinned)}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </SidebarGroupContent>
+              </>
             )}
-            
-            <div className="pb-4">
-              {pinnedNotes.length > 0 && (
-                <h2 className="text-xs font-semibold text-muted-foreground mb-2 px-2">NOTES</h2>
-              )}
-              <div className="space-y-1">
-                {unpinnedNotes.length > 0 ? (
-                  unpinnedNotes.map(note => (
-                    <NoteItem 
-                      key={note.id}
-                      note={note}
-                      isActive={activeNote?.id === note.id}
-                      onClick={() => onSelectNote(note)}
-                      onPin={() => onPinNote(note.id, !note.isPinned)}
-                    />
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground p-2">
-                    No notes found. Create a new one!
-                  </p>
-                )}
-              </div>
-            </div>
-          </ScrollArea>
+          </SidebarGroup>
           
-          <div className="p-4 border-t space-y-4">
-            {/* Premium Upgrade Button */}
-            <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-amber-400" />
-                <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
-              </div>
-              <p className="text-gray-400 text-sm mb-3">
-                Get voice notes, more storage and remove ads
-              </p>
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium"
-                onClick={handlePremiumClick}
-              >
-                Upgrade Now
-              </Button>
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-4 pt-2">
+              {pinnedNotes.length > 0 ? "NOTES" : "ALL NOTES"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2">
+              <ScrollArea className="h-auto max-h-[calc(100vh-400px)]">
+                <div className="space-y-1 px-1">
+                  {unpinnedNotes.length > 0 ? (
+                    unpinnedNotes.map(note => (
+                      <NoteItem 
+                        key={note.id}
+                        note={note}
+                        isActive={activeNote?.id === note.id}
+                        onClick={() => onSelectNote(note)}
+                        onPin={() => onPinNote(note.id, !note.isPinned)}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground p-4">
+                      No notes found. Create a new one!
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        
+        <SidebarFooter className="border-t space-y-2 p-4">
+          {/* Premium Upgrade Button */}
+          <div className="bg-[#2A1E12] rounded-xl p-4 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-5 w-5 text-amber-400" />
+              <h3 className="text-lg font-semibold text-white">Upgrade to Premium</h3>
             </div>
-            
-            {/* Settings, Shortcuts, Logout buttons */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setSettingsOpen(true)}
-                className="flex items-center justify-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShortcutsOpen(true)}
-                className="flex items-center justify-center gap-2"
-              >
-                <Keyboard className="h-4 w-4" />
-                <span>Shortcuts</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 col-span-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </Button>
-            </div>
-          </div>
-        </>
-      ) : (
-        // Collapsed sidebar content
-        <>
-          <div className="p-3 border-b flex justify-center">
-            <ThemeToggle />
-          </div>
-          
-          <div className="p-3 border-b flex justify-center">
-            <Button onClick={handleCreateNote} variant="default" size="icon" className="w-10 h-10" title="New Note (Ctrl+N)">
-              <Plus className="h-4 w-4" />
+            <p className="text-gray-400 text-sm mb-3">
+              Get voice notes, more storage and remove ads
+            </p>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium"
+              onClick={handlePremiumClick}
+            >
+              Upgrade Now
             </Button>
           </div>
           
-          <div className="flex-1"></div>
-          
-          <div className="p-3 border-t space-y-4">
-            <div className="flex flex-col items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setSettingsOpen(true)}
-                className="w-10 h-10"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setShortcutsOpen(true)}
-                className="w-10 h-10"
-              >
-                <Keyboard className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleLogout}
-                className="w-10 h-10"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
+          {/* Settings, Shortcuts, Feedback buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShortcutsOpen(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <Keyboard className="h-4 w-4" />
+              <span>Shortcuts</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setFeedbackOpen(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Feedback</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
           </div>
-        </>
-      )}
+        </SidebarFooter>
+      </ShadcnSidebar>
       
       <SettingsDialog 
         open={settingsOpen} 
@@ -275,6 +249,11 @@ export function Sidebar({
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
       />
-    </div>
+      
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
+    </SidebarProvider>
   );
 }

@@ -17,9 +17,9 @@ export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
   const getPreview = (content: string) => {
     // Remove HTML tags
     const plainText = content.replace(/<[^>]*>/g, "");
-    // Return truncated text - increasing from 100 to 150 characters
-    return plainText.length > 150 
-      ? plainText.substring(0, 150) + "..." 
+    // Return truncated text - showing more content now (200 characters)
+    return plainText.length > 200 
+      ? plainText.substring(0, 200) + "..." 
       : plainText;
   };
 
@@ -30,15 +30,15 @@ export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
   return (
     <div
       className={cn(
-        "p-5 cursor-pointer rounded-lg mb-3 group transition-all duration-300",
+        "p-6 cursor-pointer rounded-lg mb-4 group transition-all duration-300",
         isActive
-          ? "bg-accent text-accent-foreground"
+          ? "bg-accent text-accent-foreground border-l-4 border-primary"
           : "hover:bg-muted/50"
       )}
       onClick={onClick}
     >
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-medium text-base truncate mb-1">{note.title || "Untitled"}</h3>
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="font-medium text-lg truncate mb-1">{note.title || "Untitled"}</h3>
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -59,7 +59,7 @@ export function NoteItem({ note, isActive, onClick, onPin }: NoteItemProps) {
         </button>
       </div>
       
-      <div className="text-sm text-muted-foreground line-clamp-3 mb-3">
+      <div className="text-sm text-muted-foreground line-clamp-4 mb-3">
         {getPreview(note.content)}
       </div>
 
